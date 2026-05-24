@@ -1,0 +1,86 @@
+name: refresh-spotify
+
+# Pulls Jason's latest Spotify listening data, rebuilds the static site, and
+# publishes to gh-pages. Runs every 30 minutes plus on-demand.
+#
+# Required GitHub repo secrets:
+#   - SPOTIFY_CLIENT_ID
+#   - SPOTIFY_CLIENT_SECRET
+#   - SPOTIFY_REFRESH_TOKEN
+# To mint the refresh token: run `node scripts/fetch-jason-listens.mjs`
+# locally once; the script prints the refresh token after the OAuth dance.
+
+on:
+  # Schedule disabled while the chunk-hash/CDN race is investigated.
+  # Each Next.js build produces new hashed chunk filenames; the cron
+  # was redeploying every 30 min and deleting chunks that the still-
+  # cached HTML at the GH Pages CDN edge was referencing, producing
+  # 404s on JS and stuck "Loading…" panes.
+  # schedule:
+  #   - cron: "*/30 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-spotify
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: liner-notes-app/package-lock.json
+
+      - name: Install app deps
+        working-directory: liner-notes-app
+        run: npm ci
+
+      - name: Fetch Spotify listening data
+        env:
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+          SPOTIFY_REFRESH_TOKEN: ${{ secrets.SPOTIFY_REFRESH_TOKEN }}
+        run: node scripts/fetch-jason-listens.mjs
+
+      - name: Build site
+        working-directory: liner-notes-app
+        env:
+          NEXT_PUBLIC_BASE_PATH: /LinerNotes-ODI-Demo
+        run: npm run build
+
+      - name: Publish to gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Detach into a temp worktree on gh-pages
+          git fetch origin gh-pages
+          git worktree add /tmp/ghp gh-pages
+
+          # Mirror the new build into the worktree (preserve .git pointer)
+          rsync -a --delete --exclude='.git' liner-notes-app/out/ /tmp/ghp/
+
+          cd /tmp/ghp
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to publish."
+            exit 0
+          fi
+          git commit -m "Deploy: refresh Spotify listening data ($(date -u +%Y-%m-%dT%H:%MZ))"
+          git push origin gh-pages

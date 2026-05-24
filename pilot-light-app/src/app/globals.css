@@ -1,0 +1,184 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =======================================================================
+   Pilot Light — late-night broadcast aesthetic.
+   Near-black background, low-saturation amber accent, JetBrains Mono
+   for headings, Fraunces for body. Reads like a 2am test card.
+======================================================================= */
+
+:root {
+  color-scheme: dark;
+  --ink: #0b0b0d;
+  --surface: #15151a;
+  --surface-2: #1d1d24;
+  --line: #2a2a32;
+  --paper: #e8e2d4;
+  --muted: #8a8275;
+  --amber: #c19243;
+  --ember: #a4762d;
+}
+
+html {
+  font-size: 118.75%;
+}
+
+html, body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.65;
+}
+
+p, li { line-height: 1.7; }
+
+/* -----------------------------------------------------------------------
+   Headings — JetBrains Mono. The contract that makes the broadcast feel.
+----------------------------------------------------------------------- */
+
+h1, h2, h3, h4 {
+  font-family: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.display {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.serif {
+  font-family: var(--font-fraunces), Georgia, "Times New Roman", serif;
+}
+
+.font-mono, [class*="font-mono"] {
+  font-family: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* -----------------------------------------------------------------------
+   Atmospheric background — broadcast static + faint scanlines + vignette.
+----------------------------------------------------------------------- */
+
+body {
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.012) 0px,
+      rgba(255, 255, 255, 0.012) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.45) 100%),
+    var(--ink);
+  background-size: auto, 200px 200px, auto, auto;
+  background-attachment: fixed;
+}
+
+/* -----------------------------------------------------------------------
+   Focus — bright amber. Senior-eye friendly.
+----------------------------------------------------------------------- */
+
+:focus-visible {
+  outline: 3px solid var(--amber);
+  outline-offset: 3px;
+}
+
+/* -----------------------------------------------------------------------
+   ON-AIR pip — the amber dot, brand signature.
+----------------------------------------------------------------------- */
+
+.on-air {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--amber);
+  box-shadow: 0 0 8px rgba(193, 146, 67, 0.55);
+  animation: on-air-pulse 2.6s ease-in-out infinite;
+  vertical-align: middle;
+}
+
+@keyframes on-air-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(193, 146, 67, 0.55); }
+  50%      { opacity: 0.55; box-shadow: 0 0 4px rgba(193, 146, 67, 0.3); }
+}
+
+/* -----------------------------------------------------------------------
+   Eyebrow / kicker — every small label uses this.
+----------------------------------------------------------------------- */
+
+.eyebrow {
+  font-family: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+}
+.eyebrow--accent { color: var(--amber); }
+.eyebrow--quiet  { color: #6b6457; }
+.eyebrow--small  { font-size: 0.75rem; letter-spacing: 0.12em; }
+.eyebrow--bright { color: var(--paper); }
+
+.note { color: #b8b09e; }
+.note--soft { color: #8a8275; }
+
+/* -----------------------------------------------------------------------
+   Card hover — subtle Y-lift + warmer border.
+----------------------------------------------------------------------- */
+
+.tile {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 300ms ease,
+              background 300ms ease;
+}
+
+.tile:hover {
+  transform: translateY(-3px);
+  border-color: var(--amber);
+  background: var(--surface-2);
+}
+
+/* Section ornament */
+.section-ornament { display: flex; align-items: center; gap: 1rem; }
+.section-ornament::before, .section-ornament::after {
+  content: ""; flex: 1; height: 1px; background: var(--line);
+}
+
+/* Sticky meta-bar over dark broadcast */
+.meta-bar {
+  position: sticky; top: 0; z-index: 40;
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  background: rgba(11, 11, 13, 0.85);
+  border-bottom: 1px solid var(--line);
+}
+
+.pull-quote {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  color: var(--paper);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes fadeUp {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}

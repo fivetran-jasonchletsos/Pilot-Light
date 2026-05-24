@@ -179,6 +179,16 @@ body {
 }
 
 @keyframes fadeUp {
-  0%   { opacity: 0; transform: translateY(8px); }
+  0%   { opacity: 0; transform: translateY(14px); }
   100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hero-sweep {
+  0%   { background-position: 200% 0; opacity: 1; }
+  100% { background-position: -100% 0; opacity: 0; }
+}
+
+@keyframes scan-once {
+  0%   { transform: translateY(-100%); opacity: 0.6; }
+  100% { transform: translateY(100%); opacity: 0; }
 }

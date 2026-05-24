@@ -1,20 +1,6 @@
 import Link from "next/link";
-import { type CanonSeries, yearLabel } from "@/lib/series";
+import { type CanonSeries, yearLabel, networkColor } from "@/lib/series";
 import { seriesSlug } from "@/lib/series-slug";
-
-// SeriesCard — text-driven catalog tile. No cover image (we don't ship
-// licensed network art); the typography and metadata are the design.
-//
-// Layout reads top-to-bottom like a TV Guide entry refined to editorial:
-//   ┌────────────────────────────────────────┐
-//   │ NETWORK · YEARS · SEASONS · FORMAT     │ <- eyebrow meta line
-//   │ TITLE                                  │ <- mono display
-//   │ Creator                                │ <- serif italic
-//   │                                        │
-//   │ Note (the editorial line)              │ <- serif body
-//   │                                        │
-//   │ tag · tag · tag    [best ep ⤳]         │ <- footer
-//   └────────────────────────────────────────┘
 
 export type CardSize = "s" | "m" | "l";
 
@@ -26,19 +12,29 @@ export default function SeriesCard({
   size?: CardSize;
 }) {
   const slug = seriesSlug(show);
-  const pad = size === "s" ? "p-4 sm:p-5" : size === "l" ? "p-6 sm:p-8" : "p-5 sm:p-6";
+  const pad = size === "s" ? "p-4 pl-5 sm:p-5 sm:pl-6" : size === "l" ? "p-6 pl-7 sm:p-8 sm:pl-9" : "p-5 pl-6 sm:p-6 sm:pl-7";
   const titleSize =
     size === "s" ? "text-xl"
     : size === "l" ? "text-3xl sm:text-4xl"
     : "text-2xl sm:text-3xl";
 
+  const stripeColor = networkColor(show.network);
+  const onAir = show.yearEnd === null;
+
   return (
     <Link
       href={`/series/${slug}/`}
-      className={`tile group flex flex-col gap-3 ${pad} no-underline focus:outline-none focus:ring-2 focus:ring-amber/60`}
+      className={`tile group relative flex flex-col gap-3 ${pad} no-underline focus:outline-none focus:ring-2 focus:ring-amber/60`}
       aria-label={`${show.title} by ${show.creator}, ${yearLabel(show)}`}
     >
-      {/* Eyebrow meta line — the broadcast info strip */}
+      {/* Network-family stripe down the left edge */}
+      <span
+        aria-hidden="true"
+        className="absolute left-0 top-0 bottom-0 w-1"
+        style={{ background: stripeColor, opacity: 0.7 }}
+      />
+
+      {/* Eyebrow meta line */}
       <p className="eyebrow flex flex-wrap items-center gap-x-2 gap-y-1">
         <span className="eyebrow--accent">{show.network}</span>
         <span className="text-quiet">·</span>
@@ -51,10 +47,19 @@ export default function SeriesCard({
             <span>{show.format}</span>
           </>
         ) : null}
+        {onAir ? (
+          <>
+            <span className="text-quiet">·</span>
+            <span className="inline-flex items-center gap-1.5 eyebrow--accent">
+              <span className="on-air" aria-hidden="true" />
+              ON AIR
+            </span>
+          </>
+        ) : null}
       </p>
 
-      {/* Title — JetBrains Mono display, leans into the broadcast feel */}
-      <h3 className={`display ${titleSize} text-paper leading-[1.1] transition-colors group-hover:text-amber`}>
+      {/* Title */}
+      <h3 className={`display ${titleSize} text-paper leading-[1.05] tracking-[-0.01em] transition-colors group-hover:text-amber`}>
         {show.title}
       </h3>
 
@@ -70,7 +75,7 @@ export default function SeriesCard({
         </p>
       ) : null}
 
-      {/* Genres + optional best-episode chip */}
+      {/* Footer */}
       <div className="mt-auto pt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-line">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           {show.genres.slice(0, 4).map((g) => (
@@ -79,22 +84,27 @@ export default function SeriesCard({
             </span>
           ))}
         </div>
-        {show.bestEpisode ? (
-          <span
-            className="eyebrow eyebrow--small eyebrow--accent"
-            title={`Best episode: S${show.bestEpisode.season}E${show.bestEpisode.episode} ${show.bestEpisode.title}`}
-          >
-            best ep ⤳
-          </span>
-        ) : show.bestSeason ? (
-          <span
-            className="eyebrow eyebrow--small eyebrow--accent"
-            title={`Best season: ${show.bestSeason}`}
-          >
-            S{show.bestSeason} essential
-          </span>
-        ) : null}
+        <span className="eyebrow eyebrow--small eyebrow--accent opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0">
+          Tune in →
+        </span>
       </div>
+
+      {/* Essential badge (top-right) */}
+      {show.bestEpisode ? (
+        <span
+          className="absolute right-3 top-3 eyebrow eyebrow--small eyebrow--accent border border-amber/40 bg-ink/80 px-2 py-1 backdrop-blur-sm"
+          title={`Best ep: S${show.bestEpisode.season}E${show.bestEpisode.episode} ${show.bestEpisode.title}`}
+        >
+          ◆ Best ep
+        </span>
+      ) : show.bestSeason ? (
+        <span
+          className="absolute right-3 top-3 eyebrow eyebrow--small eyebrow--accent border border-amber/40 bg-ink/80 px-2 py-1 backdrop-blur-sm"
+          title={`Essential: Season ${show.bestSeason}`}
+        >
+          ◆ S{show.bestSeason}
+        </span>
+      ) : null}
     </Link>
   );
 }

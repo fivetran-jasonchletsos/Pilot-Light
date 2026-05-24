@@ -718,3 +718,42 @@ export function yearLabel(s: CanonSeries): string {
   if (s.yearStart === s.yearEnd) return `${s.yearStart}`;
   return `${s.yearStart}–${s.yearEnd}`;
 }
+
+// ---------------------------------------------------------------------------
+// Network families — for visual rhythm in the catalog. These are NOT real
+// network branding colors; they're a controlled palette of muted earth tones
+// that sit next to the amber accent without fighting it.
+// ---------------------------------------------------------------------------
+
+export type NetworkFamily =
+  | "premium-cable"   // HBO, Showtime, Starz, Cinemax, HBO Max, Max
+  | "broadcast"       // NBC, CBS, ABC, Fox
+  | "indie-cable"     // FX, AMC, USA, Sundance
+  | "streamer"        // Netflix, Apple TV+, Amazon, Peacock, Hulu, Paramount+
+  | "uk-euro"         // BBC, ITV, Sky, Canal+, Yes, DirecTV
+  | "other";
+
+export const FAMILY_COLORS: Record<NetworkFamily, { color: string; label: string }> = {
+  "premium-cable": { color: "#c7b89f", label: "Premium cable" },
+  "broadcast":     { color: "#8a8275", label: "Broadcast" },
+  "indie-cable":   { color: "#a4582d", label: "Indie cable" },
+  "streamer":      { color: "#6a8a82", label: "Streamer" },
+  "uk-euro":       { color: "#7a708a", label: "UK / Europe" },
+  "other":         { color: "#5d574c", label: "Other" },
+};
+
+export function networkFamily(network: string): NetworkFamily {
+  if (/\b(HBO|Showtime|Starz|Cinemax|HBO Max|Max)\b/i.test(network)) return "premium-cable";
+  if (/\b(NBC|CBS|ABC|Fox)\b/i.test(network)) return "broadcast";
+  if (/\b(FX|AMC|USA|Sundance)\b/i.test(network)) return "indie-cable";
+  if (/\b(Netflix|Apple TV\+|Amazon|Peacock|Hulu|Paramount\+)\b/i.test(network)) return "streamer";
+  if (/\b(BBC|ITV|Sky|Canal\+|Yes|DirecTV|RTÉ|Alibi)\b/i.test(network)) return "uk-euro";
+  return "other";
+}
+
+export function networkColor(network: string): string {
+  return FAMILY_COLORS[networkFamily(network)].color;
+}
+
+// Currently-on-air check — used by hero + pilot wall.
+export const onAirCount = series.filter((s) => s.yearEnd === null).length;
